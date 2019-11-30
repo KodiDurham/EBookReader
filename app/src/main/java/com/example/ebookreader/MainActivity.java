@@ -3,8 +3,14 @@ package com.example.ebookreader;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -19,11 +25,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.ebookreader.R.id.lL_possible;
 
 public class MainActivity extends AppCompatActivity {
 
     List<String> downloadedBooks = new ArrayList<>();
+    List<String> readyToBooks = new ArrayList<>();
     String[] listTitles = {"Adventures of Huckleberry Finn",
             "The Adventures of Sherlock Holmes", "The Adventures of Tom Sawyer",
             "Alice's Adventures in Wonderland", "Also sprach Zarathustra. English",
@@ -72,31 +78,31 @@ public class MainActivity extends AppCompatActivity {
             "https://www.gutenberg.org/files/74/74-0.txt",
             "https://www.gutenberg.org/files/11/11-0.txt",
             "https://www.gutenberg.org/files/1998/1998-0.txt",
-            "https://www.gutenberg.org/ebooks/375.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/375/pg375.txt",
             "https://www.gutenberg.org/files/45/45-0.txt",
-            "https://www.gutenberg.org/ebooks/1250.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/20203.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/1250/pg1250.txt",
+            "https://www.gutenberg.org/cache/epub/20203/pg20203.txt",
             "https://www.gutenberg.org/files/160/160-0.txt",
-            "https://www.gutenberg.org/ebooks/16328.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/4363.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/16328/pg16328.txt",
+            "https://www.gutenberg.org/cache/epub/4363/pg4363.txt",
             "https://www.gutenberg.org/files/28054/28054-0.txt",
-            "https://www.gutenberg.org/ebooks/19942.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/19942/pg19942.txt",
             "https://www.gutenberg.org/files/60559/60559-0.txt",
             "https://www.gutenberg.org/files/46/46-0.txt",
-            "https://www.gutenberg.org/ebooks/147.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/147/pg147.txt",
             "https://www.gutenberg.org/files/100/100-0.txt",
-            "https://www.gutenberg.org/ebooks/3296.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/3296/pg3296.txt",
             "https://www.gutenberg.org/files/1184/1184-0.txt",
             "https://www.gutenberg.org/files/2554/2554-0.txt",
             "https://www.gutenberg.org/files/60553/60553-0.txt",
-            "https://www.gutenberg.org/ebooks/815.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/972.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/1001.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/2542.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/345.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/815/pg815.txt",
+            "https://www.gutenberg.org/cache/epub/972/pg972.txt",
+            "https://www.gutenberg.org/cache/epub/1001/pg1001.txt",
+            "https://www.gutenberg.org/cache/epub/2542/pg2542.txt",
+            "https://www.gutenberg.org/cache/epub/345/pg345.txt",
             "https://www.gutenberg.org/files/2814/2814-0.txt",
             "https://www.gutenberg.org/files/158/158-0.txt",
-            "https://www.gutenberg.org/ebooks/16643.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/16643/pg16643.txt",
             "https://www.gutenberg.org/files/3600/3600-0.txt",
             "https://www.gutenberg.org/files/4517/4517-0.txt",
             "https://www.gutenberg.org/files/84/84-0.txt",
@@ -105,64 +111,65 @@ public class MainActivity extends AppCompatActivity {
             "https://www.gutenberg.org/files/829/829-0.txt",
             "https://www.gutenberg.org/files/219/219-0.txt",
             "https://www.gutenberg.org/files/2852/2852-0.txt",
-            "https://www.gutenberg.org/ebooks/45502.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/6130.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/844.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/11030.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/15399.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/1635.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/1260.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/45502/pg45502.txt",
+            "https://www.gutenberg.org/cache/epub/6130/pg6130.txt",
+            "https://www.gutenberg.org/cache/epub/844/pg844.txt",
+            "https://www.gutenberg.org/cache/epub/11030/pg11030.txt",
+            "https://www.gutenberg.org/cache/epub/15399/pg15399.txt",
+            "https://www.gutenberg.org/cache/epub/1635/pg1635.txt",
+            "https://www.gutenberg.org/cache/epub/1260/pg1260.txt",
             "https://www.gutenberg.org/files/140/140-0.txt",
-            "https://www.gutenberg.org/ebooks/27827.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/27827/pg27827.txt",
             "https://www.gutenberg.org/files/1251/1251-0.txt",
             "https://www.gutenberg.org/files/1322/1322-0.txt",
             "https://www.gutenberg.org/files/41/41-0.txt",
             "https://www.gutenberg.org/files/135/135-0.txt",
-            "https://www.gutenberg.org/ebooks/3207.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/3207/pg3207.txt",
             "https://www.gutenberg.org/files/521/521-0.txt",
-            "https://www.gutenberg.org/ebooks/514.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/5200.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/514/pg514.txt",
+            "https://www.gutenberg.org/cache/epub/5200/pg5200.txt",
             "https://www.gutenberg.org/files/2701/2701-0.txt",
             "https://www.gutenberg.org/files/59328/59328-0.txt",
             "https://www.gutenberg.org/files/1080/1080-0.txt",
-            "https://www.gutenberg.org/ebooks/851.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/23.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/34901.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/851/pg851.txt",
+            "https://www.gutenberg.org/cache/epub/23/pg23.txt",
+            "https://www.gutenberg.org/cache/epub/34901/pg34901.txt",
             "https://www.gutenberg.org/files/60555/60555-0.txt",
             "https://www.gutenberg.org/files/16/16-0.txt",
-            "https://www.gutenberg.org/ebooks/174.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/174/pg174.txt",
             "https://www.gutenberg.org/files/1342/1342-0.txt",
-            "https://www.gutenberg.org/ebooks/1232.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/5827.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/1232/pg1232.txt",
+            "https://www.gutenberg.org/cache/epub/5827/pg5827.txt",
             "https://www.gutenberg.org/files/58585/58585-0.txt",
-            "https://www.gutenberg.org/ebooks/3825.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/1497.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/3825/pg3825.txt",
+            "https://www.gutenberg.org/cache/epub/1497/pg1497.txt",
             "https://www.gutenberg.org/files/25344/25344-0.txt",
-            "https://www.gutenberg.org/ebooks/7370.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/161.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/2500.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/7370/pg7370.txt",
+            "https://www.gutenberg.org/cache/epub/161/pg161.txt",
+            "https://www.gutenberg.org/cache/epub/2500/pg2500.txt",
             "https://www.gutenberg.org/files/1934/1934-0.txt",
-            "https://www.gutenberg.org/ebooks/408.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/408/pg408.txt",
             "https://www.gutenberg.org/files/43/43-0.txt",
             "https://www.gutenberg.org/files/244/244-0.txt",
             "https://www.gutenberg.org/files/98/98-0.txt",
-            "https://www.gutenberg.org/ebooks/833.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/833/pg833.txt",
             "https://www.gutenberg.org/files/35/35-0.txt",
-            "https://www.gutenberg.org/ebooks/779.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/779/pg779.txt",
             "https://www.gutenberg.org/files/120/120-0.txt",
             "https://www.gutenberg.org/files/209/209-0.txt",
             "https://www.gutenberg.org/files/4300/4300-0.txt",
             "https://www.gutenberg.org/files/203/203-0.txt",
-            "https://www.gutenberg.org/ebooks/60545.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/60545/pg60545.txt",
             "https://www.gutenberg.org/files/205/205-0.txt",
             "https://www.gutenberg.org/files/2600/2600-0.txt",
             "https://www.gutenberg.org/files/36/36-0.txt",
-            "https://www.gutenberg.org/ebooks/55.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/55/pg55.txt",
             "https://www.gutenberg.org/files/2148/2148-0.txt",
-            "https://www.gutenberg.org/ebooks/25525.txt.utf-8",
-            "https://www.gutenberg.org/ebooks/768.txt.utf-8",
+            "https://www.gutenberg.org/cache/epub/25525/pg25525.txt",
+            "https://www.gutenberg.org/cache/epub/768/pg768.txt",
             "https://www.gutenberg.org/files/1952/1952-0.txt"};
 
+    String LISTS_DOWNLOADED="books";
 
     LinearLayout lLDownloaded;
     LinearLayout lLPossible;
@@ -176,17 +183,44 @@ public class MainActivity extends AppCompatActivity {
         //new ReadTask().execute(bookTitles);
 
         lLDownloaded=findViewById(R.id.lL_downloaded);
-        lLPossible=findViewById(lL_possible);
+        lLPossible=findViewById(R.id.lL_possible);
 
         for (int i=0; i<listTitles.length;i++){
-            //downloadedBooks.add(listTitles[i]);
+            if (!downloadedBooks.contains(listTitles[i])){
+                readyToBooks.add(listTitles[i]);
+            }
         }
         updateDownloadedLayout();
 
-
-        //new AsyncGetBook().execute( "The Adventures of Sherlock Holmes", "https://www.gutenberg.org/files/1661/1661-0.txt" );
     }
 
+    // system is ready to create the menu
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_options, menu);
+        return true;
+    }
+
+    // respond to a menu item click
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // which item did they click?
+        switch ( item.getItemId() ) {
+            case R.id.menu_settings:
+
+                // want to change a setting
+                Intent settingsIntent = new Intent(
+                        getApplicationContext(), SettingActivity.class );
+                // start the activity, getting a response
+                startActivity(settingsIntent);
+                return true;
+
+            default:
+                // unknown item
+                return false;
+        }
+    }
 
     //update downloaded layout
     public void updateDownloadedLayout(){
@@ -196,33 +230,47 @@ public class MainActivity extends AppCompatActivity {
             addToLlList(downloadedBooks.get(i),lLDownloaded);
         }
 
-        for (int i =0; i<listTitles.length;i++){
-            addToLlList(listTitles[i],lLPossible);
+        for (int i =0; i<readyToBooks.size();i++){
+            addToLlList(readyToBooks.get(i),lLPossible);
         }
     }
 
     //add button to linearList
     public void addToLlList(final String title, final LinearLayout layout){
 
-        final Button thistext = new Button(this);
-        thistext.setText(title);
+        final Button thisButton = new Button(this);
+        thisButton.setText(title);
 
-        layout.addView(thistext);
+        layout.addView(thisButton);
 
-        //if layout is lLdownloaded
+        //if layout is lLDownloaded
+        if (layout==lLDownloaded){
+            thisButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(getApplicationContext(), "opening "+title, Toast.LENGTH_LONG).show();
 
+                    Intent intent = new Intent( getApplicationContext(), ReaderActivity.class );
+                    intent.putExtra( ReaderActivity.BOOK_EXTRA, title );
+                    startActivity( intent );
 
-        //if layout islLPossible
-        thistext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //int index =layout.indexOfChild(thistext);
-                new AsyncGetBook().execute(title,listURLs[indexOf(title,listTitles)]);
-                downloadedBooks.add(title);
-                Toast.makeText( getApplicationContext(), title, Toast.LENGTH_LONG ).show();
-                updateDownloadedLayout();
-            }
-        });
+                    updateDownloadedLayout();
+                }
+            });
+        }else {
+            //if layout islLPossible
+            thisButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //int index =layout.indexOfChild(thisButton);
+                    new AsyncGetBook().execute(title, listURLs[indexOf(title, listTitles)]);
+                    downloadedBooks.add(title);
+                    Toast.makeText(getApplicationContext(), title+" Downloaded", Toast.LENGTH_LONG).show();
+                    readyToBooks.remove(title);
+                    updateDownloadedLayout();
+                }
+            });
+        }
     }
 
     public int indexOf(String key, String[] arr){
