@@ -1,3 +1,20 @@
+/*
+    Author: Kodi Durham
+
+    Course: CSC 309
+
+    Date: Dec. 1, 2019
+
+    Class: Setting Activity
+
+    Purpose: Its suppose to be able to get books online and download them and read them and delete them.
+        keeping track of the readers place and allowing them to jumping to points in the book. Also
+        allow the user to change the text size.
+
+    Class Purpose: This calls allows the user to change the text size in the reader and preview the size.
+        it should return back to where it was started from.
+*/
+
 package com.example.ebookreader;
 
 import androidx.appcompat.app.AppCompatActivity;

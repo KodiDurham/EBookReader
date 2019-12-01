@@ -1,3 +1,20 @@
+/*
+    Author: Kodi Durham
+
+    Course: CSC 309
+
+    Date: Dec. 1, 2019
+
+    Class: Main Activity
+
+    Purpose: Its suppose to be able to get books online and download them and read them and delete them.
+        keeping track of the readers place and allowing them to jumping to points in the book. Also
+        allow the user to change the text size.
+
+    Class Purpose: This class allows the user to manage and download books and select certain books
+        to read or go to settings.
+*/
+
 package com.example.ebookreader;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,6 +25,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -16,19 +34,27 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    List<String> downloadedBooks = new ArrayList<>();
+    List<String> downloadedBooks;
+    List<Integer> progress;
+
     List<String> readyToBooks = new ArrayList<>();
     String[] listTitles = {"Adventures of Huckleberry Finn",
             "The Adventures of Sherlock Holmes", "The Adventures of Tom Sawyer",
@@ -170,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
             "https://www.gutenberg.org/files/1952/1952-0.txt"};
 
     String LISTS_DOWNLOADED="books";
+    String LISTS_PROGRESS="progress";
 
     LinearLayout lLDownloaded;
     LinearLayout lLPossible;
@@ -180,7 +207,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        //new ReadTask().execute(bookTitles);
+
+        load();
 
         lLDownloaded=findViewById(R.id.lL_downloaded);
         lLPossible=findViewById(R.id.lL_possible);
@@ -222,21 +250,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onResume(){
+        super.onResume();
+        load();
+    }
+
     //update downloaded layout
     public void updateDownloadedLayout(){
         lLDownloaded.removeAllViews();
         lLPossible.removeAllViews();
         for (int i =0; i<downloadedBooks.size();i++){
-            addToLlList(downloadedBooks.get(i),lLDownloaded);
+            addButtonToLlList(downloadedBooks.get(i),lLDownloaded);
         }
 
         for (int i =0; i<readyToBooks.size();i++){
-            addToLlList(readyToBooks.get(i),lLPossible);
+            addButtonToLlList(readyToBooks.get(i),lLPossible);
         }
     }
 
     //add button to linearList
-    public void addToLlList(final String title, final LinearLayout layout){
+    public void addButtonToLlList(final String title, final LinearLayout layout){
 
         final Button thisButton = new Button(this);
         thisButton.setText(title);
@@ -248,13 +282,31 @@ public class MainActivity extends AppCompatActivity {
             thisButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Toast.makeText(getApplicationContext(), "opening "+title, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Opening "+title, Toast.LENGTH_LONG).show();
 
                     Intent intent = new Intent( getApplicationContext(), ReaderActivity.class );
                     intent.putExtra( ReaderActivity.BOOK_EXTRA, title );
+                    intent.putExtra( ReaderActivity.LOCATION_EXTRA, progress.get(downloadedBooks.indexOf(title)) );
                     startActivity( intent );
 
+                    //updateDownloadedLayout();
+                }
+            });
+
+            thisButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    int index = downloadedBooks.indexOf(title);
+                    readyToBooks.add(downloadedBooks.remove(index));
+                    progress.remove(index);
+                    Toast.makeText(getApplicationContext(), title+" deleted", Toast.LENGTH_LONG).show();
+
+
+
+                    deleteFile(title+".txt");
+                    save();
                     updateDownloadedLayout();
+                    return true;
                 }
             });
         }else {
@@ -264,15 +316,54 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     //int index =layout.indexOfChild(thisButton);
                     new AsyncGetBook().execute(title, listURLs[indexOf(title, listTitles)]);
+
                     downloadedBooks.add(title);
-                    Toast.makeText(getApplicationContext(), title+" Downloaded", Toast.LENGTH_LONG).show();
+                    progress.add(0);
+                    Toast.makeText(getApplicationContext(), title+" downloaded", Toast.LENGTH_LONG).show();
                     readyToBooks.remove(title);
+
                     updateDownloadedLayout();
+                    save();
                 }
             });
         }
     }
 
+    //save the lists to shared preferences
+    private void save(){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = preferences.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(downloadedBooks);
+        editor.putString( LISTS_DOWNLOADED, json);
+        json = gson.toJson(progress);
+        editor.putString( LISTS_PROGRESS, json);
+        editor.apply();
+    }
+
+    //load the lists to shared preferences
+    private void load(){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        Gson gson = new Gson();
+
+        String json = preferences.getString(LISTS_DOWNLOADED,null);
+        Type type =new TypeToken<ArrayList<String>>() {}.getType();
+        downloadedBooks = gson.fromJson(json,type);
+
+        json = preferences.getString(LISTS_PROGRESS,null);
+        type =new TypeToken<ArrayList<Integer>>() {}.getType();
+        progress=gson.fromJson(json,type);
+
+        if(downloadedBooks == null){
+            downloadedBooks = new ArrayList<>();
+        }
+        if(progress == null){
+            progress = new ArrayList<>();
+        }
+
+    }
+
+    //gets index of the key of string array
     public int indexOf(String key, String[] arr){
         for (int i=0;i<arr.length;i++){
             if(arr[i].equals(key)){
@@ -282,6 +373,7 @@ public class MainActivity extends AppCompatActivity {
         return -1;
     }
 
+    //fetches string from URL abd returns it in a string
     protected String fetchItem( String str_url ) {
         try {
             // assemble the string and the search request
@@ -310,6 +402,7 @@ public class MainActivity extends AppCompatActivity {
         return "";
     }
 
+    //gets book
     class AsyncGetBook extends AsyncTask<String,String,Boolean> {
         // string of the book
         String book;
